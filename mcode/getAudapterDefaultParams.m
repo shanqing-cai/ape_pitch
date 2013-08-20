@@ -146,6 +146,9 @@ p.pvocFrameLen = 256;
 p.pvocHop = 64;
 p.bDownSampFilt = 1;
 
+p.bPvocAmpNorm = 1;
+p.pvocAmpNormTrans = 32;
+
 if ~isempty(fsic(varargin, 'pvocFrameLen'))
     p.pvocFrameLen = varargin{fsic(varargin, 'pvocFrameLen') + 1};
 end

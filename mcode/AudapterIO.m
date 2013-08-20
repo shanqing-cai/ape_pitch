@@ -172,6 +172,14 @@ switch(action)
             Audapter(3, 'pvochop', p.pvocHop, toPrompt);
         end
         
+        if (isfield(p, 'bPvocAmpNorm'))
+            Audapter(3, 'bpvocampnorm', p.bPvocAmpNorm, toPrompt);
+        end
+        
+        if (isfield(p, 'pvocAmpNormTrans'))
+            Audapter(3, 'pvocampnormtrans', p.pvocAmpNormTrans, toPrompt);
+        end
+        
         if (isfield(p, 'bDownSampFilt'))
             Audapter(3, 'bdownsampfilt', p.bDownSampFilt, toPrompt);
         end
@@ -179,6 +187,8 @@ switch(action)
         if (isfield(p, 'stereoMode'))
             Audapter(3, 'stereomode', p.stereoMode, toPrompt);
         end
+        
+        
         
         return;
 %%            
@@ -231,6 +241,16 @@ switch(action)
                 
                 offS = offS + 1;
                 data.pitchShiftRatio = dataMat(:, offS);
+                
+                % DEBUG: amp normalization
+                offS = offS + 1;
+                data.ms_in = dataMat(:, offS);
+                
+                offS = offS + 1;
+                data.ms_out = dataMat(:, offS);
+                
+                offS = offS + 1;
+                data.amp_ratio = dataMat(:, offS);
                 
                 data.params         = p;
 
