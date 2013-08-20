@@ -162,10 +162,10 @@ if bNew % set up new experiment
     expt.script.pract1.nReps = expt_config.PRACT1_REPS; %SC Default 2   %SC-Mod(09/26/2007)        % !!1!!
     expt.script.pract2.nReps = expt_config.PRACT2_REPS; %SC Default 2   %SC-Mod(09/26/2007)        % !!1!!
     
-    expt.script.rand.nBlocks = expt_config.RAND_BLOCKS;  %SC Default 10   %SC-Mod(09/26/2007)       % !!8!!
-    expt.script.rand.trialsPerBlock = expt_config.RAND_TRIALS_PER_BLOCK; 
-    expt.script.rand.trialsPerBlock_lower = expt_config.RAND_LOWER_TRIALS_PER_BLOCK;
-    expt.script.rand.trialsPerBlock_higher = expt_config.RAND_HIGHER_TRIALS_PER_BLOCK;
+%     expt.script.rand.nBlocks = expt_config.RAND_BLOCKS;  %SC Default 10   %SC-Mod(09/26/2007)       % !!8!!
+%     expt.script.rand.trialsPerBlock = expt_config.RAND_TRIALS_PER_BLOCK; 
+%     expt.script.rand.trialsPerBlock_lower = expt_config.RAND_LOWER_TRIALS_PER_BLOCK;
+%     expt.script.rand.trialsPerBlock_higher = expt_config.RAND_HIGHER_TRIALS_PER_BLOCK;
 
 	expt.trialTypeDesc = cell(1, 5);
 	expt.trialTypeDesc{1} = 'Speech with auditory feedback';
@@ -193,7 +193,8 @@ if bNew % set up new experiment
                           expt_config.INTER_SHIFT_DELAYS_MS, expt_config.PITCH_SHIFTS_CENT, ...
                           expt_config.INT_SHIFTS_DB, ...
                           expt_config.F1_SHIFTS_RATIO, expt_config.F2_SHIFTS_RATIO, ...
-                          expt_config.SHIFT_DURS_MS, expt_config.STIM_UTTER, expt_config.FULL_SCHEDULE_FILE);
+                          expt_config.SHIFT_DURS_MS, expt_config.STIM_UTTER, expt_config.STIM_REST, ...
+                          expt_config.FULL_SCHEDULE_FILE);
     end
 	fprintf('Done.\n');
 
@@ -811,7 +812,7 @@ for n=startPhase:length(allPhases)
             if length(thisphase) >= 4 && isequal(thisphase(1 : 4), 'rand')   % Configure random perturbation                
                 fprintf(1, 'rand pert type = [%s]\n', thisTrial);
                 
-                if ~isequal(thisTrial, 'ctrl')
+                if ~(isequal(thisTrial, 'ctrl') || isequal(thisTrial, 'rest'))
                     p.pertAmp = abs(expt.script.(thisphase).(repString).F1Shifts_ratio{k}(1) + i * expt.script.(thisphase).(repString).F2Shifts_ratio{k}(1)) * ones(1, p.pertFieldN);
                     p.pertPhi = angle(expt.script.(thisphase).(repString).F1Shifts_ratio{k}(1) + i * expt.script.(thisphase).(repString).F2Shifts_ratio{k}(1)) * ones(1, p.pertFieldN);
                     

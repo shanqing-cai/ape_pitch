@@ -4,7 +4,7 @@ function [phaseScript, pertDes] = genRandScript(nBlocks, trialsPerBlock, ...
                                      interShiftDelays_ms, pitchShifts_cent, ...
                                      intShifts_dB, ...
                                      F1Shifts_ratio, F2Shifts_ratio, ...
-                                     shiftDurs_ms, stimUtters, fullSchedFN)
+                                     shiftDurs_ms, stimUtters, stimRest, fullSchedFN)
 %%
 if ~isempty(fullSchedFN)
     check_file(fullSchedFN);
@@ -30,7 +30,7 @@ a_nTrialsPerBlock = [];
 if ~isempty(fullSchedFN)
     a_trialTypes = unique(sched);
     for i1 = 1 : numel(a_trialTypes)
-        a_trialTypeIsPert(i1) = ~isequal(a_trialTypes{i1}, 'ctrl');
+        a_trialTypeIsPert(i1) = ~isequal(a_trialTypes{i1}, 'ctrl') & ~isequal(a_trialTypes{i1}, 'rest');
         a_nTrialsPerBlock(i1) = length(fsic(sched, a_trialTypes{i1}));
     end
     
@@ -46,7 +46,7 @@ else
 
         t_strs = splitstring(t_items{i1}, '-');
         a_trialTypes{end + 1} = t_strs{2};
-        a_trialTypeIsPert(end + 1) = ~isequal(lower(a_trialTypes{end}), 'ctrl');
+        a_trialTypeIsPert(end + 1) = ~isequal(lower(a_trialTypes{end}), 'ctrl') & ~isequal(lower(a_trialTypes{end}), 'rest');
         a_nTrialsPerBlock(end + 1) = str2double(t_strs{1});
 
         check_pos_int(a_nTrialsPerBlock(end), ...
@@ -56,7 +56,6 @@ else
     if length(unique(a_trialTypes)) ~= length(a_trialTypes)
         error('Duplicate items in TRIAL_TYPES_IN_BLOCK');
     end
-
     
 
     
@@ -65,11 +64,12 @@ end
 
 %--- Make sure that ctrl is first in list ---%
 idxCtrl = fsic(a_trialTypes, 'ctrl');
+idxRest = fsic(a_trialTypes, 'rest');
 if length(idxCtrl) == 0
     error('It is mandatory that ctrl is in TRIAL_TYPES_IN_BLOCK, although the number may be set to zero if necessary.');
 end
 
-idxOrd = [idxCtrl, setxor(1 : length(a_trialTypes), idxCtrl)];
+idxOrd = [[idxRest, idxCtrl], setxor(1 : length(a_trialTypes), [idxRest, idxCtrl])];
 a_trialTypes = a_trialTypes(idxOrd);
 a_trialTypeIsPert = a_trialTypeIsPert(idxOrd);
 a_nTrialsPerBlock = a_nTrialsPerBlock(idxOrd);
@@ -334,19 +334,46 @@ phaseScript.nTrials = 0;
 
 prevPertPos = -Inf;
 for n = 1 : pertDes.nBlocks
-    if isempty(fullSchedFN)
-        wordsUsed = {};
-        while (length(wordsUsed) < trialsPerBlock)
-            nToGo = trialsPerBlock - length(wordsUsed);
-            if (nToGo >= length(stimUtters))
-                wordsUsed = [wordsUsed, stimUtters(randperm(length(stimUtters)))];
-            elseif (nToGo > 0)
-                idx = randperm(length(stimUtters));
-                wordsUsed = [wordsUsed, stimUtters(randperm(nToGo))];
-            end
-        end
+    wordsUsed = cell(1, 2); % {nonRest, rest}
+    if isempty(fsic(pertDes.trialTypes, 'rest'))
+        nr = 0;
+        nnr = pertDes.trialsPerBlock;
     else
-        wordsUsed = repmat(stimUtters, 1, pertDes.trialsPerBlock);
+        nr = pertDes.nTrialsPerBlock(fsic(pertDes.trialTypes, 'rest'));
+        nnr = pertDes.trialsPerBlock - nr;
+    end
+    
+    for i1 = 1 : 2
+        if i1 == 1
+            nts = nnr;
+            len = length(stimUtters);
+        else
+            nts = nr;
+            len = length(stimRest);
+        end
+        
+        if isempty(fullSchedFN)
+            wordsUsed{i1} = {};
+            
+            while (length(wordsUsed{i1}) <  nts)
+                nToGo = nts - length(wordsUsed{i1});
+                if (nToGo >= len)
+                    if i1 == 1
+                        wordsUsed{i1} = [wordsUsed{i1}, stimUtters(randperm(length(stimUtters)))];
+                    else
+                        wordsUsed{i1} = [wordsUsed{i1}, stimRest(randperm(length(stimRest)))];
+                    end
+                elseif (nToGo > 0)                    
+                    if i1 == 1
+                        wordsUsed{i1} = [wordsUsed{i1}, stimUtters(randperm(nToGo))];
+                    else
+                        wordsUsed{i1} = [wordsUsed{i1}, stimRest(randperm(nToGo))];
+                    end
+                end
+            end
+        else
+            wordsUsed{i1} = repmat(stimUtters, 1, pertDes.trialsPerBlock); % TODO
+        end
     end
     
 %     wordsUsed = wordsUsed(randperm(length(wordsUsed)));
@@ -375,28 +402,43 @@ for n = 1 : pertDes.nBlocks
                 oneRep.trialOrder = [oneRep.trialOrder, repmat(i1 - 1, 1, pertDes.nTrialsPerBlock(i1))];
             end
         end
+        
+        if ~isempty(fsic(pertDes.trialTypes, 'rest'))
+            oneRep.trialOrder = oneRep.trialOrder - 1;
+        end
 
         bOkay = 0;
         while ~bOkay
             oneRep.trialOrder = oneRep.trialOrder(randperm(length(oneRep.trialOrder)));
 
-            idxPert = find(oneRep.trialOrder);
+            idxPert = find(oneRep.trialOrder > 0);
             distPert = diff(idxPert) - 1;
 
             bOkay = isempty(find(distPert < minDistBetwShifts, 1));
         end
 
         oneRep.trialOrder = [trialOrder_pre, oneRep.trialOrder];
+        
+        if ~isempty(fsic(pertDes.trialTypes, 'rest'))
+            oneRep.trialOrder = oneRep.trialOrder + 1;
+        end
 
         prevPertPos = find(oneRep.trialOrder);
         prevPertPos = prevPertPos(end) - length(oneRep.trialOrder) - 1;
 
         oneRep.trialOrder = num2cell(oneRep.trialOrder);
-        for i1 = 1 : length(oneRep.trialOrder)
-            if oneRep.trialOrder{i1} == 0
-                oneRep.trialOrder{i1} = 'ctrl';
+        oneRep.word = cell(1, length(oneRep.trialOrder));
+        cnt_nr = 1;
+        cnt_r = 1;
+        for i1 = 1 : length(oneRep.trialOrder)             
+            oneRep.trialOrder{i1} = pertDes.trialTypes{oneRep.trialOrder{i1} + 1};
+
+            if isequal(oneRep.trialOrder{i1}, 'rest')
+                oneRep.word{i1} = wordsUsed{2}{cnt_r};
+                cnt_r = cnt_r + 1;
             else
-                oneRep.trialOrder{i1} = pertDes.trialTypesPert{oneRep.trialOrder{i1}};
+                oneRep.word{i1} = wordsUsed{1}{cnt_nr};
+                cnt_nr = cnt_nr + 1;
             end
         end
     
@@ -407,7 +449,7 @@ for n = 1 : pertDes.nBlocks
     
     %-- Details of pitch shift --%
     nt = length(oneRep.trialOrder);
-    oneRep.word = wordsUsed;
+%     oneRep.word = wordsUsed;
     oneRep.pitchShifts_cent = cell(1, nt);
     oneRep.intShifts_dB = cell(1, nt);
     oneRep.F1Shifts_ratio = cell(1, nt);
@@ -418,11 +460,9 @@ for n = 1 : pertDes.nBlocks
 
     for i1 = 1 : nt
         tt = oneRep.trialOrder{i1};
-        if isequal(tt, 'ctrl')
+        if isequal(tt, 'ctrl') || isequal(tt, 'rest')
             continue;
         end
-        
-        
         ns = pertDes.numShifts.(tt);
         oneRep.pitchShifts_cent{i1} = nan(1, ns);
         oneRep.intShifts_dB{i1} = nan(1, ns);

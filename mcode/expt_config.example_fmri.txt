@@ -17,7 +17,7 @@ ALWAYS_ON 0     % 0 - no; 1 - yes
 N_RAND_RUNS 3            % Number of rand runs
 N_BLOCKS_PER_RAND_RUN 1  % Number of block (a.k.a., repetitions) in each rand run
 TRIALS_PER_BLOCK 5      % Number of trials in each block
-TRIAL_TYPES_IN_BLOCK {3-ctrl, 1-up, 1-down}
+TRIAL_TYPES_IN_BLOCK {3-ctrl, 1-up, 1-down} % Special trial types: "ctrl" - no-perturbation speech (required); "rest" - no-speech resting (mainly for fMRI experiments; not required)
 MIN_DIST_BETW_SHIFTS 2           % Minimum number of ctrl trials between two shift trials
 
 %--- Custom trial schedule ---%
@@ -39,6 +39,7 @@ SHIFT_DURS_MS {up-[Inf], down-[Inf]} % Unit: ms. To impose perturbation on the e
 %=== Stimulus utterance ===%
 % STIM_UTTER AAA
 STIM_UTTER BET PET
+STIM_REST ###           % Visual display for no-speech rest (rest) trials. 
 
 %=== Intensity threshold ===%
 INTENSITY_THRESH 0.01
