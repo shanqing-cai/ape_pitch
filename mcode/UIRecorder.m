@@ -1200,7 +1200,7 @@ if (handles.debug==0)
     bSpeedGood = (durRes == 0);
     
     % Show intensity animation
-    if handles.showRmsPrompt == 1
+    if handles.showRmsPrompt == 1 && ~isequal(handles.trialType, 'rest')
         if ~isempty(strfind(uiConfig.promptMode, 'v')) % Visual prompt
             if rmsRes == 0
                 if uiConfig.showInfoOnlyErr == 0
@@ -1228,7 +1228,7 @@ if (handles.debug==0)
         end
     end
     
-    if handles.showSpeedPrompt == 1
+    if handles.showSpeedPrompt == 1 && ~isequal(handles.trialType, 'rest')
         if ~isempty(strfind(uiConfig.promptMode, 'v')) % Visual prompt
             if durRes == 0
                 if uiConfig.showInfoOnlyErr == 0
