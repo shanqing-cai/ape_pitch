@@ -35,9 +35,9 @@ AudapterIO('reset');
 % load 'E:\DATA\APE\TS_20130802_10\rand\rep2\trial-9-1.mat' %%% GO %%%
 % load E:\DATA\APE\NWU_TS_20130806_3\rand\rep1\trial-8-ctrl.mat % "AAA"
 % load E:\DATA\APE\NWU_TS_20130806_3\rand\rep2\trial-3-ctrl.mat % "AAA"
-% load E:\DATA\APE\NWU_TS_20130806_3\rand\rep2\trial-4-down.mat % "AAA"
+load E:\DATA\APE\NWU_TS_20130806_3\rand\rep2\trial-4-down.mat % "AAA" GOOD
 % load E:\DATA\APE\NWU_TS_20130806_4\rand\rep1\trial-1-ctrl.mat % "AAA"
-load E:\DATA\APE\NWU_TS_20130806_4\rand\rep1\trial-2-up.mat % "AAA"
+% load E:\DATA\APE\NWU_TS_20130806_4\rand\rep1\trial-2-up.mat % "AAA"
 % load E:\DATA\APE\NWU_TS_20130806_3\rand\rep1\trial-1-ctrl.mat % "MMM"
 
 fs = data.params.sr;
@@ -115,5 +115,8 @@ subplot(3, 1, 3);
 plot(data1.ms_in, 'b');
 hold on;
 plot(data1.ms_out, 'r');
+
+% soundsc(data1.signalIn, data1.params.sr);
+% soundsc(data1.signalOut, data1.params.sr);
 
 return
